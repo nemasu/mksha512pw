@@ -4,10 +4,10 @@ LINKOPTS=-lcrypt
 
 
 all: CCOPTS += -O2
-all: mksha512pw
+all: strip
 
 static: LINKOPTS += -static -O2
-static: mksha512pw
+static: strip
 
 debug: CCOPTS += -g
 debug: mksha512pw
@@ -18,5 +18,12 @@ mksha512pw: mksha512pw.o
 mksha512pw.o: mksha512pw.cpp
 	${CC} ${CCOPTS} -c mksha512pw.cpp -o mksha512pw.o
 
+strip: mksha512pw
+	strip --strip-debug mksha512pw
+	strip --strip-all mksha512pw
+
 clean:
 	rm -rf mksha512pw *.o
+
+install: all
+	cp -v mksha512pw /usr/bin/
