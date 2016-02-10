@@ -18,7 +18,6 @@
 
 using std::stringstream;
 using std::cout;
-using std::cin;
 using std::endl;
 using std::string;
 
@@ -41,6 +40,15 @@ SetTermEcho( bool enable ) {
     tcsetattr(STDIN_FILENO, TCSANOW, &tty);
 }
 
+string
+getPassword() {
+	string passwd;
+	SetTermEcho(false);
+	std::cin >> passwd;
+    SetTermEcho(true);
+	return passwd;
+}
+
 int
 main( int argv, char **argc ) {
 
@@ -49,28 +57,29 @@ main( int argv, char **argc ) {
     for( uint8_t i = 0; i < SALT_SIZE; ++i ) {
         saltStream << SALT_CHARS[ (std::rand() % SALT_CHARS_LENGTH) ];
     }
-    string salt = saltStream.str();
 
     string passwd, passwd2;
     
-    cout << "Password: ";
-    SetTermEcho(false);
-    cin >> passwd;
-    SetTermEcho(true);
-    cout << endl;
+    if( !isatty(fileno(stdin)) ) {
+		std::cin >> passwd;
+		passwd2 = passwd;
+	} else {
 
-    cout << "Password again: ";
-    SetTermEcho(false);
-    cin >> passwd2;
-    SetTermEcho(true);
-    cout << endl;
+		cout << "Password: ";
+		passwd = getPassword();
+		cout << endl;
+
+		cout << "Password again: ";
+		passwd2 = getPassword();
+		cout << endl;
+	}
 
     if( passwd != passwd2 ) {
-        cout << "Passwords do not match...exiting." << std::endl;
+        cout << "Passwords do not match...exiting." << endl;
         return -1;
     }
 
-    string key = "$6$" + salt + "$";
+    string key = "$6$" + saltStream.str() + "$";
     cout << crypt( passwd.c_str(), key.c_str() ) << endl;
 
     return 0;
